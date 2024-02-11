@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -26,6 +28,14 @@ class User
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $birth = null;
+
+    #[ORM\ManyToMany(targetEntity: Activity::class, mappedBy: 'category')]
+    private Collection $relation;
+
+    public function __construct()
+    {
+        $this->relation = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -76,6 +86,33 @@ class User
     public function setBirth(\DateTimeInterface $birth): static
     {
         $this->birth = $birth;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Activity>
+     */
+    public function getRelation(): Collection
+    {
+        return $this->relation;
+    }
+
+    public function addRelation(Activity $relation): static
+    {
+        if (!$this->relation->contains($relation)) {
+            $this->relation->add($relation);
+            $relation->addCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRelation(Activity $relation): static
+    {
+        if ($this->relation->removeElement($relation)) {
+            $relation->removeCategory($this);
+        }
 
         return $this;
     }
